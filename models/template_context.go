@@ -6,6 +6,9 @@ import (
 	"net/url"
 	"path"
 	"text/template"
+	"fmt"
+	"encoding/base64"
+	"github.com/skip2/go-qrcode"
 )
 
 // TemplateContext is an interface that allows both campaigns and email
@@ -72,11 +75,22 @@ func NewPhishingTemplateContext(ctx TemplateContext, r BaseRecipient, rid string
 	}, nil
 }
 
+// GenerateQrCode can be called inside the templates to replace the given variable to
+// a qr code image of the form "data:image/png;base64;..."
+func GenerateQrCode(value string) (string, error) {
+	pngData, err := qrcode.Encode(value, qrcode.Medium, 256)
+	if err != nil {
+		return "", err
+	}
+	encodedPngData := base64.StdEncoding.EncodeToString(pngData)
+	return fmt.Sprintf("data:image/png;base64,%s", encodedPngData), nil
+}
+
 // ExecuteTemplate creates a templated string based on the provided
 // template body and data.
 func ExecuteTemplate(text string, data interface{}) (string, error) {
 	buff := bytes.Buffer{}
-	tmpl, err := template.New("template").Parse(text)
+	tmpl, err := template.New("template").Funcs(template.FuncMap{"qrcode" : GenerateQrCode}).Parse(text)
 	if err != nil {
 		return buff.String(), err
 	}
