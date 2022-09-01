@@ -90,7 +90,7 @@ func GenerateQrCode(value string) (string, error) {
 // template body and data.
 func ExecuteTemplate(text string, data interface{}) (string, error) {
 	buff := bytes.Buffer{}
-	tmpl, err := template.New("template").Funcs(template.FuncMap{"qrcode" : GenerateQrCode}).Parse(text)
+	tmpl, err := template.New("template").Funcs(template.FuncMap{"qrcode" : GenerateQrCode, "printf" : fmt.Sprintf}).Parse(text)
 	if err != nil {
 		return buff.String(), err
 	}
